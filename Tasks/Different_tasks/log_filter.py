@@ -8,9 +8,11 @@ with open('name_log.csv', encoding='utf-8') as log, open('new_name_log.csv', 'w'
     wrt = csv.DictWriter(new_log, fieldnames=rdr.fieldnames)
     tmp_dict = {}
     for line in rdr:
-        if line['email'] in tmp_dict:
-            tmp_dict[line['email']] = max(line, tmp_dict.get(line['email']), key=lambda x: datetime.datetime.strptime(x['dtime'], FMT))
-        else:
+        cur_dtime = datetime.datetime.strptime(line['dtime'], FMT)
+        if line['email'] not in tmp_dict or cur_dtime > tmp_dict[line['email']]['parsed_dtime']:
             tmp_dict[line['email']] = line
+            tmp_dict[line['email']]['parsed_dtime'] = cur_dtime
     wrt.writeheader()
+    for record in tmp_dict.values():
+        del record['parsed_dtime']
     wrt.writerows(sorted(tmp_dict.values(), key=lambda x: x['email']))
